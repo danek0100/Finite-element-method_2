@@ -42,7 +42,6 @@ class FEM
   std::vector< double > basis_gradient( unsigned int node, double xi_1, double xi_2 );
 
   void generate_mesh( std::vector<unsigned int> numberOfElements );
-  bool isNodeOnBoundary(  unsigned int i, double x_value, double y_value );
   void define_boundary_conds();
   void setup_system();
   void assemble_system();
@@ -153,27 +152,22 @@ bool areAlmostEqual(T a, U b)
 }
 
 template < int dim >
-bool FEM<dim>::isNodeOnBoundary( unsigned int i, double x_value, double y_value ) 
+void FEM<dim>::define_boundary_conds()
 {
-    return areAlmostEqual( nodeLocation[i][0], x_value ) || areAlmostEqual( nodeLocation[i][1], y_value );
-}
+  const unsigned int totalNodes = dof_handler.n_dofs();
 
-template < int dim >
-void FEM< dim >::define_boundary_conds()
-{
-    const unsigned int totalNodes = dof_handler.n_dofs();
-
-    for ( uint i = 0; i < totalNodes; ++i )
+  for (uint i = 0; i < totalNodes ; ++i) 
+  {
+    if ( areAlmostEqual( nodeLocation[i][1], y_min ) )
     {
-        if (isNodeOnBoundary(i, nodeLocation[i][0], y_min))
-        {
-            boundary_values[i] = 300 * (1. + 1. / 3. * nodeLocation[i][0]);
-        }
-        if (isNodeOnBoundary(i, nodeLocation[i][0], y_max))
-        {
-            boundary_values[i] = 310 * (1. + 8. * nodeLocation[i][0] * nodeLocation[i][0]);
-        }
+      boundary_values[i] = 300 * (1. + 1./3. * nodeLocation[i][0] );
     }
+
+    if ( areAlmostEqual( nodeLocation[i][1], y_max ) )
+    {
+      boundary_values[i] = 310 * ( 1. + 8. * nodeLocation[i][0] * nodeLocation[i][0] );
+    }
+  }
 }
 
 template < int dim >
